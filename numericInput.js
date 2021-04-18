@@ -1,12 +1,47 @@
+const handleCopy = e => {
+    e.preventDefault()
+    const regex = /[^0-9\.\-]/g;
+    const valueToCopy = parseFloat(e.target.value.replace(regex, '')) || 0
+    const clipboard  = e.clipboardData || window.clipboardData;
+    clipboard.setData('Text', valueToCopy);
+}
+
+const handlePaste = e => {
+    e.preventDefault()
+    const regex = /[^0-9\.\-]/g;
+    const startPos = e.target.selectionStart
+    const endPos = e.target.selectionEnd
+
+
+    const clipboard  = e.clipboardData || window.clipboardData;
+    const pastedData = clipboard.getData('Text');
+    const replacedClipboardText = pastedData.replace(regex, '')
+
+    if (e.target.value.length > 15 && startPos === endPos) {
+        return
+    }
+    const replacedText = e.target.value.replace(regex, '')
+
+    var lengthAgterPaste = replacedText.length + (endPos - startPos) + replacedClipboardText.length
+    if (lengthAgterPaste > 15) {
+        console.log('too long')
+        return
+    }
+    const newValue = e.target.value.substring(0, startPos) + replacedClipboardText + e.target.value.substring(endPos, e.target.value.length)
+
+    const numText = parseFloat(newValue.replace(regex, '')) || 0
+    e.target.value = numText.toLocaleString('de-CH', { maximumFractionDigits: 2 })
+    console.log(newValue)
+}
+
 const makeItNumeric = e => {
     const regex = /[^0-9\.\-]/g;
     const startPos = e.target.selectionStart
     const endPos = e.target.selectionEnd
-    
+    console.log(e.keyCode)
     if ((e.keyCode > 47 && e.keyCode < 58) || (e.keyCode > 95 && e.keyCode < 106)) { //it it is a number 
         
         e.preventDefault()
-        
         if (e.target.value.length > 15 && startPos === endPos) {
             return
         }
@@ -22,11 +57,9 @@ const makeItNumeric = e => {
         }else {
             e.target.value = numText.toLocaleString('de-CH', { maximumFractionDigits: 2 })
         }
-        
         const extraChar = (e.target.value.substring(0, startPos + 1).match(regex) || []).length
         const selectION = startPos + 1 + extraChar - initExtraChar
         e.target.setSelectionRange(selectION, selectION)
-
     } else if (e.keyCode === 8) { //it it is a backspace 
         e.preventDefault()
         const nonSelect = endPos === startPos? 1 : 0
@@ -55,7 +88,6 @@ const makeItNumeric = e => {
         if ( e.target.value.startsWith('-')) {
             return
         }
-        
         const newValue =  e.target.value
         const replacedText = '-' + newValue.replace(regex, '')
         const numText = parseFloat(replacedText)|| 0
@@ -69,6 +101,8 @@ const makeItNumeric = e => {
         const replacedText = newValue.replace(regex, '')
         const numText = parseFloat(replacedText)|| 0
         e.target.value = numText.toLocaleString('de-CH', { maximumFractionDigits: 2 })
+    } else if ((e.metaKey || e.ctrlKey) && (e.keyCode === 86 || e.keyCode === 67)) {  //Ctrl + V, Ctrl + C
+        
     } else {
         e.preventDefault()
     }
@@ -77,10 +111,17 @@ const makeItNumeric = e => {
 class NumericInput {
     constructor(element, event = true) {
         this.element = element
-        if (event) element.addEventListener('keydown', makeItNumeric)
+        this.Value = this.Value
+        if (event) {
+            element.addEventListener('keydown', makeItNumeric)
+            element.addEventListener('paste', handlePaste)
+            element.addEventListener('copy', handleCopy)
+        }
     }
-    static makeItNumeric(element) {
+    static MakeItNumeric(element) {
         element.addEventListener('keydown', makeItNumeric)
+        element.addEventListener('paste', handlePaste)
+        element.addEventListener('copy', handleCopy)
     }
     get Value() {
         const regex = /[^0-9\.\-]/g;
