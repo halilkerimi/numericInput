@@ -1,3 +1,11 @@
+const handleCopy = e => {
+    e.preventDefault()
+    const regex = /[^0-9\.\-]/g;
+    const valueToCopy = parseFloat(e.target.value.replace(regex, '')) || 0
+    const clipboard  = e.clipboardData || window.clipboardData;
+    clipboard.setData('Text', valueToCopy);
+}
+
 const handlePaste = e => {
     e.preventDefault()
     const regex = /[^0-9\.\-]/g;
@@ -21,7 +29,7 @@ const handlePaste = e => {
     }
     const newValue = e.target.value.substring(0, startPos) + replacedClipboardText + e.target.value.substring(endPos, e.target.value.length)
 
-    const numText = parseFloat(newValue.replace(regex, ''))|| 0
+    const numText = parseFloat(newValue.replace(regex, '')) || 0
     e.target.value = numText.toLocaleString('de-CH', { maximumFractionDigits: 2 })
     console.log(newValue)
 }
@@ -93,7 +101,7 @@ const makeItNumeric = e => {
         const replacedText = newValue.replace(regex, '')
         const numText = parseFloat(replacedText)|| 0
         e.target.value = numText.toLocaleString('de-CH', { maximumFractionDigits: 2 })
-    } else if ((e.keyCode === 86 && e.ctrlKey) || (e.keyCode === 86 && e.metaKey)) {  //Ctrl + V
+    } else if ((e.metaKey || e.ctrlKey) && (e.keyCode === 86 || e.keyCode === 67)) {  //Ctrl + V, Ctrl + C
         
     } else {
         e.preventDefault()
@@ -103,14 +111,17 @@ const makeItNumeric = e => {
 class NumericInput {
     constructor(element, event = true) {
         this.element = element
+        this.Value = this.Value
         if (event) {
             element.addEventListener('keydown', makeItNumeric)
             element.addEventListener('paste', handlePaste)
+            element.addEventListener('copy', handleCopy)
         }
     }
     static MakeItNumeric(element) {
         element.addEventListener('keydown', makeItNumeric)
         element.addEventListener('paste', handlePaste)
+        element.addEventListener('copy', handleCopy)
     }
     get Value() {
         const regex = /[^0-9\.\-]/g;
